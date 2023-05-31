@@ -1,10 +1,18 @@
 plugins {
     id 'java'
     id 'io.freefair.lombok' version '5.3.0'
+    id 'io.qameta.allure' version '2.11.2'
 }
 
 group 'org.example'
 version '1.0-SNAPSHOT'
+
+allure {
+    version = '2.20.1'
+    useJUnit5 {
+        version = '2.20.1'
+    }
+}
 
 repositories {
     mavenCentral()
@@ -25,4 +33,7 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    systemProperty 'dbUrl', System.getProperty('dbUrl', 'jdbc:mysql://localhost:3306/app')
 }
+
+

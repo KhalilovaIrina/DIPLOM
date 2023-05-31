@@ -24,6 +24,11 @@ public class DataHelper {
         Faker faker = new Faker();
         return faker.numerify("###############");
     }
+
+    public static String getRandomNumberCard() {
+        Faker faker = new Faker();
+        return faker.numerify("################");
+    }
     private static int range(int min, int max) {
         Random random = new Random();
         int range = min + random.nextInt(max - min + 1);
@@ -36,8 +41,8 @@ public class DataHelper {
     }
 
     private static LocalDate futureDate() {
-        int range = range(61, 120);
-        LocalDate invalid = LocalDate.now().plusMonths(range);
+        //int range = range(61, 120);
+        LocalDate invalid = LocalDate.now().plusMonths(61);
         return invalid;
     }
 
@@ -80,7 +85,7 @@ public class DataHelper {
 
     public static Date geDoubleZeroMonth() {
         String month = "00";
-        String year = validDate().format(DateTimeFormatter.ofPattern("yy"));
+        String year = LocalDate.now().plusYears(1).format(DateTimeFormatter.ofPattern("yy"));
         return new Date(month, year);
     }
 

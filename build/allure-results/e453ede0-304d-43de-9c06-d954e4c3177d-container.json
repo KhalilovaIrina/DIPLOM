@@ -1,0 +1,1 @@
+{"uuid":"e453ede0-304d-43de-9c06-d954e4c3177d","name":"DebitTest","children":["cc9b0bad-dc68-4899-9178-58fc381c130a"],"befores":[{"name":"setupAll","status":"passed","stage":"finished","steps":[],"attachments":[],"parameters":[],"start":1685548067007,"stop":1685548067509}],"afters":[],"start":1685548066959,"stop":1685548070561}

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="netology.test.DebitTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2023-05-31T15:47:47" hostname="WIN-3RAHDNDFC19" time="2.982">
+  <properties/>
+  <testcase name="Попытка отправить пустую форму" classname="netology.test.DebitTest" time="2.982"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Starting ChromeDriver 113.0.5672.63 (0e1a4471d5ae5bf128b1bd8f4d627c8cbd55f70c-refs/branch-heads/5672@{#912}) on port 47461
+Only local connections are allowed.
+Please see https://chromedriver.chromium.org/security-considerations for suggestions on keeping ChromeDriver safe.
+ChromeDriver was started successfully.
+мая 31, 2023 6:47:48 PM org.openqa.selenium.remote.ProtocolHandshake createSession
+INFO: Detected dialect: W3C
+]]></system-err>
+</testsuite>

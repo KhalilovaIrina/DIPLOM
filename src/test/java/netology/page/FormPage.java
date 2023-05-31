@@ -1,5 +1,6 @@
 package netology.page;
 
+import lombok.SneakyThrows;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -7,6 +8,10 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.HashMap;
+import java.util.NoSuchElementException;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class FormPage {
     private By cardNumber = By.xpath("//span[contains(text(),'Номер карты')]/following::input");
@@ -21,7 +26,8 @@ public class FormPage {
     private By notificationEmptyField = By.xpath("//span[text()='Поле обязательно для заполнения']");
     private By notificationInvalidFutureDate = By.xpath("//span[text()='Неверно указан срок действия карты']");
     private By notificationOverdueDate = By.xpath("//span[text()='Истёк срок действия карты']");
-
+    private By messageCloseButton = By.className("icon_name_close");
+    private By notification = By.className("input__sub");
     private HashMap<String, WebElement> webElements(WebDriver driver) {
         HashMap<String, WebElement> elements = new HashMap<String, WebElement>();
         elements.put("cardNumber", driver.findElement(cardNumber));
@@ -71,6 +77,31 @@ public class FormPage {
 
         new WebDriverWait(driver, 15, 0)
                 .until(ExpectedConditions.visibilityOf(ok));
+    }
+
+    public void getOkMessageNotVisible(WebDriver driver) {
+        WebElement buttonClose = driver.findElement(messageCloseButton);
+        buttonClose.click();
+        assertTrue(isElementNotVisible(messageOk, driver));
+    }
+    public void getErrorMessageNotVisible(WebDriver driver) {
+        WebElement buttonClose = driver.findElement(messageCloseButton);
+        buttonClose.click();
+        assertTrue(isElementNotVisible(messageError, driver));
+    }
+    public void geInvalidFormatNotVisible(WebDriver driver) {
+        assertTrue(isElementNotVisible(notificationInvalidFormat, driver));
+    }
+    public void getNotificationNotVisible(WebDriver driver) {
+        assertTrue(isElementNotVisible(notification, driver));
+    }
+
+
+    @SneakyThrows
+    public boolean isElementNotVisible(By by, WebDriver driver) {
+        new WebDriverWait(driver, 10, 0)
+                .until(ExpectedConditions.visibilityOf(driver.findElement(by)));
+        return false;
     }
 
     public void getErrorMessage(WebDriver driver) {

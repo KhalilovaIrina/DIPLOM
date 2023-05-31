@@ -10,6 +10,8 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 class DebitTest {
 
@@ -17,6 +19,7 @@ class DebitTest {
 
     @BeforeAll
     static void setupAll() {
+
         WebDriverManager.chromedriver().setup();
     }
 
@@ -25,6 +28,7 @@ class DebitTest {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--no-sandbox");
+        options.addArguments("--headless");
         driver = new ChromeDriver(options);
         driver.get("http://localhost:8080/");
         var initialPage = new InitialPage();
@@ -41,6 +45,7 @@ class DebitTest {
     void removeDB() {
         DBHelper.removeDB();
     }
+
     @Test
     @DisplayName("Успешная оплата")
     void shouldSuccessPay() {
@@ -56,9 +61,11 @@ class DebitTest {
         );
         debitPage.clickNextButton(driver);
         debitPage.getOkMessage(driver);
+        //debitPage.getErrorMessageNotVisible(driver);
 
         Assertions.assertEquals("APPROVED", DBHelper.getStatus());
     }
+
     @Test
     @DisplayName("Попытка оплаты заблокированной картой")
     void shouldTryPayWithDeclinedNumberCard() {
@@ -74,8 +81,29 @@ class DebitTest {
         );
         debitPage.clickNextButton(driver);
         debitPage.getErrorMessage(driver);
+        //debitPage.getOkMessageNotVisible(driver);
 
         Assertions.assertEquals("DECLINED", DBHelper.getStatus());
+    }
+
+    @Test
+    @DisplayName("Попытка оплаты незарегистрированной картой")
+    void shouldTryPayWithNotRegisteredCard() {
+        var debitPage = new DebitPage(driver);
+        var date = DataHelper.getValidDate();
+        debitPage.enteringDataCard(
+                driver,
+                DataHelper.getRandomNumberCard(),
+                date.getMonth(),
+                date.getYear(),
+                DataHelper.getValidOwner(),
+                DataHelper.getValidCvc()
+        );
+        debitPage.clickNextButton(driver);
+        debitPage.getErrorMessage(driver);
+        //debitPage.getOkMessageNotVisible(driver);
+
+        Assertions.assertTrue(DBHelper.isEmptyDB());
     }
 
     @Test
@@ -93,6 +121,7 @@ class DebitTest {
         );
         debitPage.clickNextButton(driver);
         debitPage.getNotificationInvalidFormat(driver);
+
 
         Assertions.assertTrue(DBHelper.isEmptyDB());
     }
@@ -155,7 +184,7 @@ class DebitTest {
     }
 
     @Test
-    @DisplayName("Поле Месяц заполнено 1 цифрой")
+    @DisplayName("Поле Месяц заполнено нолями")
     void shouldBeNotificationInvalidFormatMonthZero() {
         var debitPage = new DebitPage(driver);
         var date = DataHelper.geDoubleZeroMonth();
@@ -312,8 +341,36 @@ class DebitTest {
         var debitPage = new DebitPage(driver);
         debitPage.clickNextButton(driver);
         debitPage.getNotificationEmptyField(driver);
+        //  debitPage.geInvalidFormatNotVisible(driver);
 
         Assertions.assertTrue(DBHelper.isEmptyDB());
+    }
+    @Test
+    @DisplayName("Повторная отправка формы")
+    void shouldBeNotErrorNotification() {
+        var debitPage = new DebitPage(driver);
+        debitPage.clickNextButton(driver);
+        debitPage.getNotificationEmptyField(driver);
+        //debitPage.geInvalidFormatNotVisible(driver);
+
+        Assertions.assertTrue(DBHelper.isEmptyDB());
+
+        var date = DataHelper.getValidDate();
+        debitPage.enteringDataCard(
+                driver,
+                DataHelper.getApprovedNumberCard(),
+                date.getMonth(),
+                date.getYear(),
+                DataHelper.getValidOwner(),
+                DataHelper.getValidCvc()
+        );
+        debitPage.clickNextButton(driver);
+        debitPage.getOkMessage(driver);
+        //debitPage.getErrorMessageNotVisible(driver);
+        //debitPage.getNotificationNotVisible(driver);
+
+        Assertions.assertEquals("APPROVED", DBHelper.getStatus());
+
     }
 
 }

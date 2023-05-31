@@ -4,7 +4,6 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 import netology.data.DBHelper;
 import netology.data.DataHelper;
 import netology.page.CreditPage;
-import netology.page.DebitPage;
 import netology.page.InitialPage;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.WebDriver;
@@ -26,6 +25,7 @@ class CreditTest {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--no-sandbox");
+        options.addArguments("--headless");
         driver = new ChromeDriver(options);
         driver.get("http://localhost:8080/");
         var initialPage = new InitialPage();
