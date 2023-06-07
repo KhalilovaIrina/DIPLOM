@@ -10,6 +10,9 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 
 class CreditTest {
 
@@ -28,8 +31,8 @@ class CreditTest {
         options.addArguments("--headless");
         driver = new ChromeDriver(options);
         driver.get("http://localhost:8080/");
-        var initialPage = new InitialPage();
-        initialPage.buyByCreditCard(driver);
+        var initialPage = new InitialPage(driver);
+        initialPage.buyByCreditCard();
     }
 
     @AfterEach
@@ -39,44 +42,64 @@ class CreditTest {
     }
 
     @AfterEach
-    void removeDB() {
-        DBHelper.removeDB();
+    void removeDbTable() {
+        DBHelper.clearDbTable();
     }
+
     @Test
     @DisplayName("Успешная оплата")
     void shouldSuccessPay() {
-       var creditPage = new CreditPage(driver);
+        var creditPage = new CreditPage(driver);
         var date = DataHelper.getValidDate();
         creditPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getValidOwner(),
                 DataHelper.getValidCvc()
         );
-        creditPage.clickNextButton(driver);
-        creditPage.getOkMessage(driver);
+        creditPage.clickNextButton();
+        creditPage.getOkMessage();
 
-        Assertions.assertEquals("APPROVED", DBHelper.getStatus());
+        Assertions.assertEquals("APPROVED", DBHelper.getStatusForCredit());
     }
+
     @Test
     @DisplayName("Попытка оплаты заблокированной картой")
     void shouldTryPayWithDeclinedNumberCard() {
         var creditPage = new CreditPage(driver);
         var date = DataHelper.getValidDate();
         creditPage.enteringDataCard(
-                driver,
                 DataHelper.getDeclinedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getValidOwner(),
                 DataHelper.getValidCvc()
         );
-        creditPage.clickNextButton(driver);
-        creditPage.getErrorMessage(driver);
+        creditPage.clickNextButton();
+        creditPage.getErrorMessage();
 
-        Assertions.assertEquals("DECLINED", DBHelper.getStatus());
+        Assertions.assertEquals("DECLINED", DBHelper.getStatusForCredit());
+    }
+
+    @Test
+    @DisplayName("Попытка оплаты незарегистрированной картой")
+    void shouldTryPayWithNotRegisteredCard() {
+        var creditPage = new CreditPage(driver);
+        var date = DataHelper.getValidDate();
+        creditPage.enteringDataCard(
+                DataHelper.getRandomNumberCard(),
+                date.getMonth(),
+                date.getYear(),
+                DataHelper.getValidOwner(),
+                DataHelper.getValidCvc()
+        );
+        creditPage.clickNextButton();
+        creditPage.getErrorMessage();
+        creditPage.closeNotificationMessage();
+        Assertions.assertTrue(creditPage.getOkMessageNotVisible());
+
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -85,17 +108,17 @@ class CreditTest {
         var creditPage = new CreditPage(driver);
         var date = DataHelper.getValidDate();
         creditPage.enteringDataCard(
-                driver,
                 DataHelper.getShortNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getValidOwner(),
                 DataHelper.getValidCvc()
         );
-        creditPage.clickNextButton(driver);
-        creditPage.getNotificationInvalidFormat(driver);
+        creditPage.clickNextButton();
+        creditPage.getNotificationInvalidFormat();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -104,17 +127,16 @@ class CreditTest {
         var creditPage = new CreditPage(driver);
         var date = DataHelper.getFutureDate();
         creditPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getValidOwner(),
                 DataHelper.getValidCvc()
         );
-        creditPage.clickNextButton(driver);
-        creditPage.getNotificationInvalidFutureDate(driver);
+        creditPage.clickNextButton();
+        creditPage.getNotificationInvalidDate();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -123,17 +145,19 @@ class CreditTest {
         var creditPage = new CreditPage(driver);
         var date = DataHelper.getPastDate();
         creditPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getValidOwner(),
                 DataHelper.getValidCvc()
         );
-        creditPage.clickNextButton(driver);
-        creditPage.getNotificationOverdueDate(driver);
-
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        creditPage.clickNextButton();
+        if (date.getYear().equals(LocalDate.now().format(DateTimeFormatter.ofPattern("yy")))) {
+            creditPage.getNotificationInvalidDate();
+        } else {
+            creditPage.getNotificationOverdueYear();
+        }
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -142,36 +166,34 @@ class CreditTest {
         var creditPage = new CreditPage(driver);
         var date = DataHelper.getShortMonth();
         creditPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getValidOwner(),
                 DataHelper.getValidCvc()
         );
-        creditPage.clickNextButton(driver);
-        creditPage.getNotificationInvalidFormat(driver);
+        creditPage.clickNextButton();
+        creditPage.getNotificationInvalidFormat();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
-    @DisplayName("Поле Месяц заполнено 1 цифрой")
+    @DisplayName("Поле Месяц заполнено нолями")
     void shouldBeNotificationInvalidFormatMonthZero() {
         var creditPage = new CreditPage(driver);
         var date = DataHelper.geDoubleZeroMonth();
         creditPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getValidOwner(),
                 DataHelper.getValidCvc()
         );
-        creditPage.clickNextButton(driver);
-        creditPage.getNotificationInvalidFormat(driver);
+        creditPage.clickNextButton();
+        creditPage.getNotificationInvalidFormat();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -180,17 +202,16 @@ class CreditTest {
         var creditPage = new CreditPage(driver);
         var date = DataHelper.getShortYear();
         creditPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getValidOwner(),
                 DataHelper.getValidCvc()
         );
-        creditPage.clickNextButton(driver);
-        creditPage.getNotificationInvalidFormat(driver);
+        creditPage.clickNextButton();
+        creditPage.getNotificationInvalidFormat();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -199,17 +220,16 @@ class CreditTest {
         var creditPage = new CreditPage(driver);
         var date = DataHelper.getValidDate();
         creditPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getOwnerCyrillic(),
                 DataHelper.getValidCvc()
         );
-        creditPage.clickNextButton(driver);
-        creditPage.getNotificationInvalidFormat(driver);
+        creditPage.clickNextButton();
+        creditPage.getNotificationInvalidFormat();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -218,17 +238,16 @@ class CreditTest {
         var creditPage = new CreditPage(driver);
         var date = DataHelper.getValidDate();
         creditPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getTooLongOwner(),
                 DataHelper.getValidCvc()
         );
-        creditPage.clickNextButton(driver);
-        creditPage.getNotificationInvalidFormat(driver);
+        creditPage.clickNextButton();
+        creditPage.getNotificationInvalidFormat();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -237,17 +256,16 @@ class CreditTest {
         var creditPage = new CreditPage(driver);
         var date = DataHelper.getValidDate();
         creditPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getOwnerWithSymbol(),
                 DataHelper.getValidCvc()
         );
-        creditPage.clickNextButton(driver);
-        creditPage.getNotificationInvalidFormat(driver);
+        creditPage.clickNextButton();
+        creditPage.getNotificationInvalidFormat();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -256,17 +274,16 @@ class CreditTest {
         var creditPage = new CreditPage(driver);
         var date = DataHelper.getValidDate();
         creditPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getOwnerWithNumber(),
                 DataHelper.getValidCvc()
         );
-        creditPage.clickNextButton(driver);
-        creditPage.getNotificationInvalidFormat(driver);
+        creditPage.clickNextButton();
+        creditPage.getNotificationInvalidFormat();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -275,17 +292,16 @@ class CreditTest {
         var creditPage = new CreditPage(driver);
         var date = DataHelper.getValidDate();
         creditPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getOwnerWithSpaces(),
                 DataHelper.getValidCvc()
         );
-        creditPage.clickNextButton(driver);
-        creditPage.getNotificationEmptyField(driver);
+        creditPage.clickNextButton();
+        creditPage.getNotificationEmptyField();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -294,27 +310,56 @@ class CreditTest {
         var creditPage = new CreditPage(driver);
         var date = DataHelper.getValidDate();
         creditPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getValidOwner(),
                 DataHelper.getShortCvc()
         );
-        creditPage.clickNextButton(driver);
-        creditPage.getNotificationInvalidFormat(driver);
+        creditPage.clickNextButton();
+        creditPage.getNotificationInvalidFormat();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
     @DisplayName("Попытка отправить пустую форму")
     void shouldBeNotificationEmptyField() {
         var creditPage = new CreditPage(driver);
-        creditPage.clickNextButton(driver);
-        creditPage.getNotificationEmptyField(driver);
+        creditPage.clickNextButton();
+        creditPage.getNotificationEmptyField();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(creditPage.getInvalidFormatNotVisible());
+
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
+    @Test
+    @DisplayName("Повторная отправка формы")
+    void shouldBeNotErrorNotification() {
+        var creditPage = new CreditPage(driver);
+        creditPage.clickNextButton();
+        creditPage.getNotificationEmptyField();
+
+        Assertions.assertTrue(creditPage.getInvalidFormatNotVisible());
+
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
+
+        var date = DataHelper.getValidDate();
+        creditPage.enteringDataCard(
+                DataHelper.getApprovedNumberCard(),
+                date.getMonth(),
+                date.getYear(),
+                DataHelper.getValidOwner(),
+                DataHelper.getValidCvc()
+        );
+        creditPage.clickNextButton();
+        creditPage.getOkMessage();
+
+        Assertions.assertTrue(creditPage.getInvalidFormatNotVisible());
+        Assertions.assertTrue(creditPage.getEmptyFieldsNotVisible());
+
+        Assertions.assertEquals("APPROVED", DBHelper.getStatusForCredit());
+
+    }
 }

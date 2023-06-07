@@ -14,102 +14,131 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class FormPage {
-    private By cardNumber = By.xpath("//span[contains(text(),'Номер карты')]/following::input");
-    private By month = By.xpath("//span[contains(text(),'Месяц')]/following::input");
-    private By year = By.xpath("//span[contains(text(),'Год')]/following::input");
-    private By owner = By.xpath("//span[contains(text(),'Владелец')]/following::input");
-    private By cvc = By.xpath("//span[contains(text(),'CVC/CVV')]/following::input");
+
+    private WebDriver webDriver;
+
+    public FormPage(WebDriver webDriver) {
+        this.webDriver = webDriver;
+    }
+
+    private By cardNumberField = By.xpath("//span[contains(text(),'Номер карты')]/following::input");
+    private By monthField = By.xpath("//span[contains(text(),'Месяц')]/following::input");
+    private By yearField = By.xpath("//span[contains(text(),'Год')]/following::input");
+    private By ownerField = By.xpath("//span[contains(text(),'Владелец')]/following::input");
+    private By cvcField = By.xpath("//span[contains(text(),'CVC/CVV')]/following::input");
     private By nextButton = By.xpath("//span[text()='Продолжить']");
     private By messageOk = By.className("notification_status_ok");
     private By messageError = By.className("notification_status_error");
     private By notificationInvalidFormat = By.xpath("//span[text()='Неверный формат']");
     private By notificationEmptyField = By.xpath("//span[text()='Поле обязательно для заполнения']");
-    private By notificationInvalidFutureDate = By.xpath("//span[text()='Неверно указан срок действия карты']");
-    private By notificationOverdueDate = By.xpath("//span[text()='Истёк срок действия карты']");
-    private By messageCloseButton = By.className("icon_name_close");
-    private By notification = By.className("input__sub");
-    private HashMap<String, WebElement> webElements(WebDriver driver) {
-        HashMap<String, WebElement> elements = new HashMap<String, WebElement>();
-        elements.put("cardNumber", driver.findElement(cardNumber));
-        elements.put("month", driver.findElement(month));
-        elements.put("year", driver.findElement(year));
-        elements.put("owner", driver.findElement(owner));
-        elements.put("cvc", driver.findElement(cvc));
-        elements.put("nextButton", driver.findElement(nextButton));
-        return elements;
+    private By notificationInvalidDate = By.xpath("//span[text()='Неверно указан срок действия карты']");
+    private By notificationInvalidYear = By.xpath("//span[text()='Истёк срок действия карты']");
+    private By messageCloseButton = By.cssSelector(".notification_status_error button");
+
+
+    public void enteringDataCard(String number, String month, String year, String owner, String cvc) {
+        var cardNumberElement = this.webDriver.findElement(cardNumberField);
+        cardNumberElement.sendKeys(number);
+
+        var monthElement = this.webDriver.findElement(monthField);
+        monthElement.sendKeys(month);
+
+        var yearElement = this.webDriver.findElement(yearField);
+        yearElement.sendKeys(year);
+
+        WebElement ownerElement = this.webDriver.findElement(ownerField);
+        ownerElement.sendKeys(owner);
+
+        WebElement cvcElement = this.webDriver.findElement(cvcField);
+        cvcElement.sendKeys(cvc);
     }
 
-    public void enteringDataCard(WebDriver driver, String number, String month, String year, String owner, String cvc) {
-        webElements(driver).get("cardNumber").sendKeys(number);
-        webElements(driver).get("month").sendKeys(month);
-        webElements(driver).get("year").sendKeys(year);
-        webElements(driver).get("owner").sendKeys(owner);
-        webElements(driver).get("cvc").sendKeys(cvc);
+    public void getNotificationInvalidFormat() {
+        var notification = this.webDriver.findElement(notificationInvalidFormat);
+        var isElementVisible = notification.isDisplayed();
+        assertTrue(isElementVisible);
     }
 
-    public void getNotificationInvalidFormat(WebDriver driver) {
-        WebElement notification = driver.findElement(notificationInvalidFormat);
-        notification.isDisplayed();
+    public void getNotificationInvalidDate() {
+        var notification = this.webDriver.findElement(notificationInvalidDate);
+        var isElementVisible = notification.isDisplayed();
+        assertTrue(isElementVisible);
     }
 
-    public void getNotificationInvalidFutureDate(WebDriver driver) {
-        WebElement notification = driver.findElement(notificationInvalidFutureDate);
-        notification.isDisplayed();
+    public void getNotificationOverdueYear() {
+        var notificationYear = this.webDriver.findElement(notificationInvalidYear);
+        var isElementVisible = notificationYear.isDisplayed();
+        assertTrue(isElementVisible);
     }
 
-    public void getNotificationOverdueDate(WebDriver driver) {
-        WebElement notification = driver.findElement(notificationOverdueDate);
-        notification.isDisplayed();
-    }
-
-    public void getNotificationEmptyField(WebDriver driver) {
-        WebElement notification = driver.findElement(notificationEmptyField);
-        notification.isDisplayed();
+    public void getNotificationEmptyField() {
+        var notification = this.webDriver.findElement(notificationEmptyField);
+        var isElementVisible = notification.isDisplayed();
+        assertTrue(isElementVisible);
     }
 
 
-    public void clickNextButton(WebDriver driver) {
-        webElements(driver).get("nextButton").click();
+    public void clickNextButton() {
+        var nextElement = this.webDriver.findElement(nextButton);
+
+        nextElement.click();
     }
 
-    public void getOkMessage(WebDriver driver) {
-        WebElement ok = driver.findElement(messageOk);
+    public void getOkMessage() {
+        var ok = this.webDriver.findElement(messageOk);
 
-        new WebDriverWait(driver, 15, 0)
+        new WebDriverWait(this.webDriver, 15, 0)
                 .until(ExpectedConditions.visibilityOf(ok));
     }
 
-    public void getOkMessageNotVisible(WebDriver driver) {
-        WebElement buttonClose = driver.findElement(messageCloseButton);
-        buttonClose.click();
-        assertTrue(isElementNotVisible(messageOk, driver));
-    }
-    public void getErrorMessageNotVisible(WebDriver driver) {
-        WebElement buttonClose = driver.findElement(messageCloseButton);
-        buttonClose.click();
-        assertTrue(isElementNotVisible(messageError, driver));
-    }
-    public void geInvalidFormatNotVisible(WebDriver driver) {
-        assertTrue(isElementNotVisible(notificationInvalidFormat, driver));
-    }
-    public void getNotificationNotVisible(WebDriver driver) {
-        assertTrue(isElementNotVisible(notification, driver));
-    }
+    public void getErrorMessage() {
+        var error = this.webDriver.findElement(messageError);
 
-
-    @SneakyThrows
-    public boolean isElementNotVisible(By by, WebDriver driver) {
-        new WebDriverWait(driver, 10, 0)
-                .until(ExpectedConditions.visibilityOf(driver.findElement(by)));
-        return false;
-    }
-
-    public void getErrorMessage(WebDriver driver) {
-        WebElement error = driver.findElement(messageError);
-
-        new WebDriverWait(driver, 15, 0)
+        new WebDriverWait(this.webDriver, 15, 0)
                 .until(ExpectedConditions.visibilityOf(error));
+    }
+
+    public boolean getInvalidFormatNotVisible() {
+        var notification = this.webDriver.findElement(notificationInvalidFormat);
+        if (notification.isDisplayed()) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    public boolean getEmptyFieldsNotVisible() {
+        var notification = this.webDriver.findElement(notificationEmptyField);
+        if (notification.isDisplayed()) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    public void closeNotificationMessage() {
+
+        var wait = new WebDriverWait(this.webDriver, 10);
+        var closeElement = wait.until(ExpectedConditions.elementToBeClickable(messageCloseButton));
+        closeElement.click();
+    }
+
+    public boolean getOkMessageNotVisible() {
+        var notification = this.webDriver.findElement(messageOk);
+        if (notification.isDisplayed()) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
 
 }
+
+
+
+
+
+
+
+

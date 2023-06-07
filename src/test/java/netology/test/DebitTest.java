@@ -10,7 +10,8 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 
 class DebitTest {
@@ -31,8 +32,8 @@ class DebitTest {
         options.addArguments("--headless");
         driver = new ChromeDriver(options);
         driver.get("http://localhost:8080/");
-        var initialPage = new InitialPage();
-        initialPage.buyByDebitCard(driver);
+        var initialPage = new InitialPage(driver);
+        initialPage.buyByDebitCard();
     }
 
     @AfterEach
@@ -42,9 +43,10 @@ class DebitTest {
     }
 
     @AfterEach
-    void removeDB() {
-        DBHelper.removeDB();
+    void removeDbTable() {
+        DBHelper.clearDbTable();
     }
+
 
     @Test
     @DisplayName("Успешная оплата")
@@ -52,18 +54,16 @@ class DebitTest {
         var debitPage = new DebitPage(driver);
         var date = DataHelper.getValidDate();
         debitPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getValidOwner(),
                 DataHelper.getValidCvc()
         );
-        debitPage.clickNextButton(driver);
-        debitPage.getOkMessage(driver);
-        //debitPage.getErrorMessageNotVisible(driver);
+        debitPage.clickNextButton();
+        debitPage.getOkMessage();
 
-        Assertions.assertEquals("APPROVED", DBHelper.getStatus());
+        Assertions.assertEquals("APPROVED", DBHelper.getStatusForDebit());
     }
 
     @Test
@@ -72,18 +72,16 @@ class DebitTest {
         var debitPage = new DebitPage(driver);
         var date = DataHelper.getValidDate();
         debitPage.enteringDataCard(
-                driver,
                 DataHelper.getDeclinedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getValidOwner(),
                 DataHelper.getValidCvc()
         );
-        debitPage.clickNextButton(driver);
-        debitPage.getErrorMessage(driver);
-        //debitPage.getOkMessageNotVisible(driver);
+        debitPage.clickNextButton();
+        debitPage.getErrorMessage();
 
-        Assertions.assertEquals("DECLINED", DBHelper.getStatus());
+        Assertions.assertEquals("DECLINED", DBHelper.getStatusForDebit());
     }
 
     @Test
@@ -92,18 +90,18 @@ class DebitTest {
         var debitPage = new DebitPage(driver);
         var date = DataHelper.getValidDate();
         debitPage.enteringDataCard(
-                driver,
                 DataHelper.getRandomNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getValidOwner(),
                 DataHelper.getValidCvc()
         );
-        debitPage.clickNextButton(driver);
-        debitPage.getErrorMessage(driver);
-        //debitPage.getOkMessageNotVisible(driver);
+        debitPage.clickNextButton();
+        debitPage.getErrorMessage();
+        debitPage.closeNotificationMessage();
+        Assertions.assertTrue(debitPage.getOkMessageNotVisible());
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -112,18 +110,16 @@ class DebitTest {
         var debitPage = new DebitPage(driver);
         var date = DataHelper.getValidDate();
         debitPage.enteringDataCard(
-                driver,
                 DataHelper.getShortNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getValidOwner(),
                 DataHelper.getValidCvc()
         );
-        debitPage.clickNextButton(driver);
-        debitPage.getNotificationInvalidFormat(driver);
+        debitPage.clickNextButton();
+        debitPage.getNotificationInvalidFormat();
 
-
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -132,17 +128,16 @@ class DebitTest {
         var debitPage = new DebitPage(driver);
         var date = DataHelper.getFutureDate();
         debitPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getValidOwner(),
                 DataHelper.getValidCvc()
         );
-        debitPage.clickNextButton(driver);
-        debitPage.getNotificationInvalidFutureDate(driver);
+        debitPage.clickNextButton();
+        debitPage.getNotificationInvalidDate();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -151,17 +146,19 @@ class DebitTest {
         var debitPage = new DebitPage(driver);
         var date = DataHelper.getPastDate();
         debitPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getValidOwner(),
                 DataHelper.getValidCvc()
         );
-        debitPage.clickNextButton(driver);
-        debitPage.getNotificationOverdueDate(driver);
-
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        debitPage.clickNextButton();
+        if (date.getYear().equals(LocalDate.now().format(DateTimeFormatter.ofPattern("yy")))) {
+            debitPage.getNotificationInvalidDate();
+        } else {
+            debitPage.getNotificationOverdueYear();
+        }
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -170,17 +167,16 @@ class DebitTest {
         var debitPage = new DebitPage(driver);
         var date = DataHelper.getShortMonth();
         debitPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getValidOwner(),
                 DataHelper.getValidCvc()
         );
-        debitPage.clickNextButton(driver);
-        debitPage.getNotificationInvalidFormat(driver);
+        debitPage.clickNextButton();
+        debitPage.getNotificationInvalidFormat();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -189,17 +185,16 @@ class DebitTest {
         var debitPage = new DebitPage(driver);
         var date = DataHelper.geDoubleZeroMonth();
         debitPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getValidOwner(),
                 DataHelper.getValidCvc()
         );
-        debitPage.clickNextButton(driver);
-        debitPage.getNotificationInvalidFormat(driver);
+        debitPage.clickNextButton();
+        debitPage.getNotificationInvalidFormat();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -208,17 +203,16 @@ class DebitTest {
         var debitPage = new DebitPage(driver);
         var date = DataHelper.getShortYear();
         debitPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getValidOwner(),
                 DataHelper.getValidCvc()
         );
-        debitPage.clickNextButton(driver);
-        debitPage.getNotificationInvalidFormat(driver);
+        debitPage.clickNextButton();
+        debitPage.getNotificationInvalidFormat();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -227,17 +221,16 @@ class DebitTest {
         var debitPage = new DebitPage(driver);
         var date = DataHelper.getValidDate();
         debitPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getOwnerCyrillic(),
                 DataHelper.getValidCvc()
         );
-        debitPage.clickNextButton(driver);
-        debitPage.getNotificationInvalidFormat(driver);
+        debitPage.clickNextButton();
+        debitPage.getNotificationInvalidFormat();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -246,17 +239,16 @@ class DebitTest {
         var debitPage = new DebitPage(driver);
         var date = DataHelper.getValidDate();
         debitPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getTooLongOwner(),
                 DataHelper.getValidCvc()
         );
-        debitPage.clickNextButton(driver);
-        debitPage.getNotificationInvalidFormat(driver);
+        debitPage.clickNextButton();
+        debitPage.getNotificationInvalidFormat();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -265,17 +257,16 @@ class DebitTest {
         var debitPage = new DebitPage(driver);
         var date = DataHelper.getValidDate();
         debitPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getOwnerWithSymbol(),
                 DataHelper.getValidCvc()
         );
-        debitPage.clickNextButton(driver);
-        debitPage.getNotificationInvalidFormat(driver);
+        debitPage.clickNextButton();
+        debitPage.getNotificationInvalidFormat();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -284,17 +275,16 @@ class DebitTest {
         var debitPage = new DebitPage(driver);
         var date = DataHelper.getValidDate();
         debitPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getOwnerWithNumber(),
                 DataHelper.getValidCvc()
         );
-        debitPage.clickNextButton(driver);
-        debitPage.getNotificationInvalidFormat(driver);
+        debitPage.clickNextButton();
+        debitPage.getNotificationInvalidFormat();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -303,17 +293,16 @@ class DebitTest {
         var debitPage = new DebitPage(driver);
         var date = DataHelper.getValidDate();
         debitPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getOwnerWithSpaces(),
                 DataHelper.getValidCvc()
         );
-        debitPage.clickNextButton(driver);
-        debitPage.getNotificationEmptyField(driver);
+        debitPage.clickNextButton();
+        debitPage.getNotificationEmptyField();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
@@ -322,54 +311,56 @@ class DebitTest {
         var debitPage = new DebitPage(driver);
         var date = DataHelper.getValidDate();
         debitPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getValidOwner(),
                 DataHelper.getShortCvc()
         );
-        debitPage.clickNextButton(driver);
-        debitPage.getNotificationInvalidFormat(driver);
+        debitPage.clickNextButton();
+        debitPage.getNotificationInvalidFormat();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
 
     @Test
     @DisplayName("Попытка отправить пустую форму")
     void shouldBeNotificationEmptyField() {
         var debitPage = new DebitPage(driver);
-        debitPage.clickNextButton(driver);
-        debitPage.getNotificationEmptyField(driver);
-        //  debitPage.geInvalidFormatNotVisible(driver);
+        debitPage.clickNextButton();
+        debitPage.getNotificationEmptyField();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(debitPage.getInvalidFormatNotVisible());
+
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
+
     @Test
     @DisplayName("Повторная отправка формы")
     void shouldBeNotErrorNotification() {
         var debitPage = new DebitPage(driver);
-        debitPage.clickNextButton(driver);
-        debitPage.getNotificationEmptyField(driver);
-        //debitPage.geInvalidFormatNotVisible(driver);
+        debitPage.clickNextButton();
+        debitPage.getNotificationEmptyField();
 
-        Assertions.assertTrue(DBHelper.isEmptyDB());
+        Assertions.assertTrue(debitPage.getInvalidFormatNotVisible());
+
+        Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
 
         var date = DataHelper.getValidDate();
         debitPage.enteringDataCard(
-                driver,
                 DataHelper.getApprovedNumberCard(),
                 date.getMonth(),
                 date.getYear(),
                 DataHelper.getValidOwner(),
                 DataHelper.getValidCvc()
         );
-        debitPage.clickNextButton(driver);
-        debitPage.getOkMessage(driver);
-        //debitPage.getErrorMessageNotVisible(driver);
-        //debitPage.getNotificationNotVisible(driver);
+        debitPage.clickNextButton();
+        debitPage.getOkMessage();
 
-        Assertions.assertEquals("APPROVED", DBHelper.getStatus());
+        Assertions.assertTrue(debitPage.getInvalidFormatNotVisible());
+        Assertions.assertTrue(debitPage.getEmptyFieldsNotVisible());
+
+        Assertions.assertEquals("APPROVED", DBHelper.getStatusForDebit());
 
     }
 
