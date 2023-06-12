@@ -29,4 +29,4 @@
 
 
 ###  Allure report
-![allure.png](..%2Fallure.png)
+![allure](https://github.com/KhalilovaIrina/Diplom/assets/117723193/25600ce3-0e95-44ca-9176-911dc63b5448)
