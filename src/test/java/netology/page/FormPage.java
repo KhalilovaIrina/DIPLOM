@@ -1,17 +1,12 @@
 package netology.page;
 
-import lombok.SneakyThrows;
+import org.junit.jupiter.api.Assertions;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
-import java.util.HashMap;
-import java.util.NoSuchElementException;
-
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 public class FormPage {
 
@@ -27,8 +22,8 @@ public class FormPage {
     private By ownerField = By.xpath("//span[contains(text(),'Владелец')]/following::input");
     private By cvcField = By.xpath("//span[contains(text(),'CVC/CVV')]/following::input");
     private By nextButton = By.xpath("//span[text()='Продолжить']");
-    private By messageOk = By.className("notification_status_ok");
-    private By messageError = By.className("notification_status_error");
+    private By messageOk = By.cssSelector(".notification_status_ok .notification__title");
+    private By messageError = By.cssSelector(".notification_status_error .notification__title");
     private By notificationInvalidFormat = By.xpath("//span[text()='Неверный формат']");
     private By notificationEmptyField = By.xpath("//span[text()='Поле обязательно для заполнения']");
     private By notificationInvalidDate = By.xpath("//span[text()='Неверно указан срок действия карты']");
@@ -37,102 +32,86 @@ public class FormPage {
 
 
     public void enteringDataCard(String number, String month, String year, String owner, String cvc) {
-        var cardNumberElement = this.webDriver.findElement(cardNumberField);
-        cardNumberElement.sendKeys(number);
+        this.webDriver.findElement(cardNumberField).sendKeys(number);
 
-        var monthElement = this.webDriver.findElement(monthField);
-        monthElement.sendKeys(month);
+        this.webDriver.findElement(monthField).sendKeys(month);
 
-        var yearElement = this.webDriver.findElement(yearField);
-        yearElement.sendKeys(year);
+        this.webDriver.findElement(yearField).sendKeys(year);
 
-        WebElement ownerElement = this.webDriver.findElement(ownerField);
-        ownerElement.sendKeys(owner);
+        this.webDriver.findElement(ownerField).sendKeys(owner);
 
-        WebElement cvcElement = this.webDriver.findElement(cvcField);
-        cvcElement.sendKeys(cvc);
+       this.webDriver.findElement(cvcField).sendKeys(cvc);
     }
 
-    public void getNotificationInvalidFormat() {
-        var notification = this.webDriver.findElement(notificationInvalidFormat);
-        var isElementVisible = notification.isDisplayed();
-        assertTrue(isElementVisible);
+    public void assertNotificationInvalidFormat() {
+        var isElementVisible = this.webDriver.findElement(notificationInvalidFormat).isDisplayed();
+        assertTrue(isElementVisible, "Отображается уведомление 'Неверный формат'");
     }
 
-    public void getNotificationInvalidDate() {
+
+
+    public void assertNotificationInvalidDate() {
         var notification = this.webDriver.findElement(notificationInvalidDate);
         var isElementVisible = notification.isDisplayed();
-        assertTrue(isElementVisible);
+        assertTrue(isElementVisible, "Отображается уведомление 'Неверно указан срок действия карты'");
     }
 
-    public void getNotificationOverdueYear() {
+    public void assertNotificationOverdueYear() {
         var notificationYear = this.webDriver.findElement(notificationInvalidYear);
         var isElementVisible = notificationYear.isDisplayed();
-        assertTrue(isElementVisible);
+        assertTrue(isElementVisible, "Отображается уведомление 'Истёк срок действия карты'");
     }
 
-    public void getNotificationEmptyField() {
+    public void assertNotificationEmptyField() {
         var notification = this.webDriver.findElement(notificationEmptyField);
         var isElementVisible = notification.isDisplayed();
-        assertTrue(isElementVisible);
+        assertTrue(isElementVisible, "Поле обязательно для заполнения'");
     }
 
 
     public void clickNextButton() {
-        var nextElement = this.webDriver.findElement(nextButton);
-
-        nextElement.click();
+        this.webDriver.findElement(nextButton).click();
     }
 
-    public void getOkMessage() {
+    public void waitOkMessage() {
         var ok = this.webDriver.findElement(messageOk);
 
         new WebDriverWait(this.webDriver, 15, 0)
                 .until(ExpectedConditions.visibilityOf(ok));
+        String okText = ok.getText();
+        Assertions.assertEquals(true, okText.contains("Успешно"), "Сообщение содержит текст 'Успешно'");
     }
 
-    public void getErrorMessage() {
+    public void waitErrorMessage() {
+
         var error = this.webDriver.findElement(messageError);
 
         new WebDriverWait(this.webDriver, 15, 0)
                 .until(ExpectedConditions.visibilityOf(error));
+        String errorText = error.getText();
+        Assertions.assertEquals(true, errorText.contains("Ошибка"), "Сообщение содержит текст 'Ошибка'");
     }
 
-    public boolean getInvalidFormatNotVisible() {
-        var notification = this.webDriver.findElement(notificationInvalidFormat);
-        if (notification.isDisplayed()) {
-            return false;
-        } else {
-            return true;
-        }
+
+    public void assertInvalidFormatNotVisible() {
+        var invalidFormatNotVisible = !this.webDriver.findElement(notificationInvalidFormat).isDisplayed();
+        assertTrue(invalidFormatNotVisible, "Не отображается уведомление 'Неверный формат'");
     }
 
-    public boolean getEmptyFieldsNotVisible() {
-        var notification = this.webDriver.findElement(notificationEmptyField);
-        if (notification.isDisplayed()) {
-            return false;
-        } else {
-            return true;
-        }
+    public void assertEmptyFieldsNotVisible() {
+        var emptyFieldsNotVisible = !this.webDriver.findElement(notificationEmptyField).isDisplayed();
+        assertTrue(emptyFieldsNotVisible, "Не отображается уведомление 'Поле обязательно для заполнения'");
     }
-
     public void closeNotificationMessage() {
 
         var wait = new WebDriverWait(this.webDriver, 10);
-        var closeElement = wait.until(ExpectedConditions.elementToBeClickable(messageCloseButton));
-        closeElement.click();
+        wait.until(ExpectedConditions.elementToBeClickable(messageCloseButton)).click();
     }
 
-    public boolean getOkMessageNotVisible() {
-        var notification = this.webDriver.findElement(messageOk);
-        if (notification.isDisplayed()) {
-            return false;
-        } else {
-            return true;
-        }
+    public void assertOkMessageNotVisible() {
+        var okMessageNotVisible = !this.webDriver.findElement(messageOk).isDisplayed();
+        assertTrue(okMessageNotVisible, "Не отображается сообщение об успешной оплате");
     }
-
-
 }
 
 

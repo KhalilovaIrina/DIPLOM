@@ -38,7 +38,6 @@ class CreditTest {
     @AfterEach
     void teardown() {
         driver.quit();
-        if (driver == null) ;
     }
 
     @AfterEach
@@ -59,7 +58,7 @@ class CreditTest {
                 DataHelper.getValidCvc()
         );
         creditPage.clickNextButton();
-        creditPage.getOkMessage();
+        creditPage.waitOkMessage();
 
         Assertions.assertEquals("APPROVED", DBHelper.getStatusForCredit());
     }
@@ -77,7 +76,7 @@ class CreditTest {
                 DataHelper.getValidCvc()
         );
         creditPage.clickNextButton();
-        creditPage.getErrorMessage();
+        creditPage.waitErrorMessage();
 
         Assertions.assertEquals("DECLINED", DBHelper.getStatusForCredit());
     }
@@ -95,9 +94,9 @@ class CreditTest {
                 DataHelper.getValidCvc()
         );
         creditPage.clickNextButton();
-        creditPage.getErrorMessage();
+        creditPage.waitErrorMessage();
         creditPage.closeNotificationMessage();
-        Assertions.assertTrue(creditPage.getOkMessageNotVisible());
+        creditPage.assertOkMessageNotVisible();
 
         Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
@@ -115,7 +114,7 @@ class CreditTest {
                 DataHelper.getValidCvc()
         );
         creditPage.clickNextButton();
-        creditPage.getNotificationInvalidFormat();
+        creditPage.assertNotificationInvalidFormat();
 
 
         Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
@@ -134,7 +133,7 @@ class CreditTest {
                 DataHelper.getValidCvc()
         );
         creditPage.clickNextButton();
-        creditPage.getNotificationInvalidDate();
+        creditPage.assertNotificationInvalidDate();
 
         Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
@@ -153,9 +152,9 @@ class CreditTest {
         );
         creditPage.clickNextButton();
         if (date.getYear().equals(LocalDate.now().format(DateTimeFormatter.ofPattern("yy")))) {
-            creditPage.getNotificationInvalidDate();
+            creditPage.assertNotificationInvalidDate();
         } else {
-            creditPage.getNotificationOverdueYear();
+            creditPage.assertNotificationOverdueYear();
         }
         Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
@@ -173,7 +172,7 @@ class CreditTest {
                 DataHelper.getValidCvc()
         );
         creditPage.clickNextButton();
-        creditPage.getNotificationInvalidFormat();
+        creditPage.assertNotificationInvalidFormat();
 
         Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
@@ -191,7 +190,7 @@ class CreditTest {
                 DataHelper.getValidCvc()
         );
         creditPage.clickNextButton();
-        creditPage.getNotificationInvalidFormat();
+        creditPage.assertNotificationInvalidFormat();
 
         Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
@@ -209,7 +208,7 @@ class CreditTest {
                 DataHelper.getValidCvc()
         );
         creditPage.clickNextButton();
-        creditPage.getNotificationInvalidFormat();
+        creditPage.assertNotificationInvalidFormat();
 
         Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
@@ -227,7 +226,7 @@ class CreditTest {
                 DataHelper.getValidCvc()
         );
         creditPage.clickNextButton();
-        creditPage.getNotificationInvalidFormat();
+        creditPage.assertNotificationInvalidFormat();
 
         Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
@@ -245,7 +244,7 @@ class CreditTest {
                 DataHelper.getValidCvc()
         );
         creditPage.clickNextButton();
-        creditPage.getNotificationInvalidFormat();
+        creditPage.assertNotificationInvalidFormat();
 
         Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
@@ -263,7 +262,7 @@ class CreditTest {
                 DataHelper.getValidCvc()
         );
         creditPage.clickNextButton();
-        creditPage.getNotificationInvalidFormat();
+        creditPage.assertNotificationInvalidFormat();
 
         Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
@@ -281,7 +280,7 @@ class CreditTest {
                 DataHelper.getValidCvc()
         );
         creditPage.clickNextButton();
-        creditPage.getNotificationInvalidFormat();
+        creditPage.assertNotificationInvalidFormat();
 
         Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
@@ -299,7 +298,7 @@ class CreditTest {
                 DataHelper.getValidCvc()
         );
         creditPage.clickNextButton();
-        creditPage.getNotificationEmptyField();
+        creditPage.assertNotificationEmptyField();
 
         Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
@@ -317,7 +316,7 @@ class CreditTest {
                 DataHelper.getShortCvc()
         );
         creditPage.clickNextButton();
-        creditPage.getNotificationInvalidFormat();
+        creditPage.assertNotificationInvalidFormat();
 
         Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
@@ -327,9 +326,9 @@ class CreditTest {
     void shouldBeNotificationEmptyField() {
         var creditPage = new CreditPage(driver);
         creditPage.clickNextButton();
-        creditPage.getNotificationEmptyField();
+        creditPage.assertNotificationEmptyField();
 
-        Assertions.assertTrue(creditPage.getInvalidFormatNotVisible());
+        creditPage.assertInvalidFormatNotVisible();
 
         Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
     }
@@ -339,9 +338,9 @@ class CreditTest {
     void shouldBeNotErrorNotification() {
         var creditPage = new CreditPage(driver);
         creditPage.clickNextButton();
-        creditPage.getNotificationEmptyField();
+        creditPage.assertNotificationEmptyField();
 
-        Assertions.assertTrue(creditPage.getInvalidFormatNotVisible());
+        creditPage.assertInvalidFormatNotVisible();
 
         Assertions.assertTrue(DBHelper.isOrderEntityTableEmpty());
 
@@ -354,10 +353,10 @@ class CreditTest {
                 DataHelper.getValidCvc()
         );
         creditPage.clickNextButton();
-        creditPage.getOkMessage();
+        creditPage.waitOkMessage();
 
-        Assertions.assertTrue(creditPage.getInvalidFormatNotVisible());
-        Assertions.assertTrue(creditPage.getEmptyFieldsNotVisible());
+        creditPage.assertInvalidFormatNotVisible();
+        creditPage.assertEmptyFieldsNotVisible();
 
         Assertions.assertEquals("APPROVED", DBHelper.getStatusForCredit());
 
